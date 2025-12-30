@@ -77,7 +77,7 @@ void updateKeysizesHist(redisDb *db, int didx, uint32_t type, int64_t oldLen, in
     if(unlikely(type >= OBJ_TYPE_BASIC_MAX))
         return;
 
-    kvstoreDictMetadata *dictMeta = kvstoreGetDictMeta(db->keys, didx, 0);
+    kvstoreDictMetadata *dictMeta = kvstoreGetDictMeta(db->keys, didx, 1);
     kvstoreMetadata *kvstoreMeta = kvstoreGetMetadata(db->keys);
 
     if (oldLen > 0) {

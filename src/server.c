@@ -533,6 +533,7 @@ static size_t kvstoreDictMetaBytes(dict *d) {
 
 static int kvstoreCanFreeDict(kvstore *kvs, int didx) {
     kvstoreDictMetadata *meta = kvstoreGetDictMeta(kvs, didx, 0);
+    if (!meta) return 1;
     debugServerAssert(meta->alloc_size == 0);
     /* Free if not in cluster */
     if (!server.cluster_enabled) return 1;
@@ -556,6 +557,7 @@ static void kvstoreOnEmpty(kvstore *kvs) {
 
 static void kvstoreOnDictEmpty(kvstore *kvs, int didx) {
     kvstoreDictMetadata *meta = kvstoreGetDictMeta(kvs, didx, 0);
+    if (!meta) return;
 #ifdef DEBUG_ASSERTIONS
     dictEmpty(kvstoreGetDict(kvs, didx), NULL);
 #endif
