@@ -787,13 +787,13 @@ void addListRangeReply(client *c, robj *o, long start, long end, int reverse) {
 void listElementsRemoved(client *c, robj *key, int where, robj *o, long count, size_t oldsize, int signal, int *deleted) {
     char *event = (where == LIST_HEAD) ? "lpop" : "rpop";
     unsigned long llen = listTypeLength(o);
-    
+
     notifyKeyspaceEvent(NOTIFY_LIST, event, key, c->db->id);
     updateKeysizesHist(c->db, getKeySlot(key->ptr), OBJ_LIST, llen + count, llen);
     if (llen == 0) {
         if (deleted) *deleted = 1;
 
-        if (clusterSlotStatsEnabled())
+        if (server.memory_tracking_per_slot)
             updateSlotAllocSize(c->db, getKeySlot(key->ptr), oldsize, listTypeAllocSize(o));
         dbDelete(c->db, key);
         notifyKeyspaceEvent(NOTIFY_GENERIC, "del", key, c->db->id);

