@@ -2911,7 +2911,8 @@ void asmTriggerBackgroundTrim(slotRangeArray *slots) {
 
 /* Trim the slots. */
 void asmTrimSlots(slotRangeArray *slots) {
-    if (asmManager->debug_trim_method == ASM_DEBUG_TRIM_NONE)
+    if (asmManager->debug_trim_method == ASM_DEBUG_TRIM_NONE ||
+        server.cluster_module_trim_disablers > 0)
         return;
 
     /* Trigger active trim for the following cases:

@@ -261,7 +261,8 @@ kvobj *lookupKey(redisDb *db, robj *key, int flags, dictEntryLink *link) {
             expire_flags |= EXPIRE_ALLOW_ACCESS_EXPIRED;
         if (flags & LOOKUP_ACCESS_TRIMMED)
             expire_flags |= EXPIRE_ALLOW_ACCESS_TRIMMED;
-        if (expireIfNeeded(db, key, val, expire_flags) != KEY_VALID) {
+        keyStatus status = expireIfNeeded(db, key, val, expire_flags);
+        if (status != KEY_VALID && status != KEY_TRIMMED) {
             /* The key is no longer valid. */
             val = NULL;
             if (link) *link = NULL;
