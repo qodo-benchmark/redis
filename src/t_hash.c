@@ -1376,8 +1376,10 @@ void hashTypeInitIterator(hashTypeIterator *hi, robj *subject) {
 }
 
 void hashTypeResetIterator(hashTypeIterator *hi) {
-    if (hi->encoding == OBJ_ENCODING_HT)
+    if (hi->encoding == OBJ_ENCODING_HT) {
         dictResetIterator(&hi->di);
+        hi->de = NULL;
+    }
 }
 
 /* Move to the next entry in the hash. Return C_OK when the next entry

