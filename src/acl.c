@@ -634,7 +634,7 @@ void ACLChangeSelectorPerm(aclSelector *selector, struct redisCommand *cmd, int 
     if (cmd->subcommands_dict) {
         dictEntry *de;
         dictIterator di;
-        dictInitSafeIterator(&di, cmd->subcommands_dict);
+        dictInitIterator(&di, cmd->subcommands_dict);
         while((de = dictNext(&di)) != NULL) {
             struct redisCommand *sub = (struct redisCommand *)dictGetVal(de);
             ACLSetSelectorCommandBit(selector,sub->id,allow);
