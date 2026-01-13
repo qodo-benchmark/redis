@@ -504,7 +504,7 @@ void pushGenericCommand(client *c, int where, int xx) {
         dbAddByLink(c->db, c->argv[1], &lobj, &link);
     }
 
-    if (clusterSlotStatsEnabled())
+    if (server.memory_tracking_per_slot)
         oldsize = listTypeAllocSize(lobj);
     listTypeTryConversionAppend(lobj,c->argv,2,c->argc-1,NULL,NULL);
     for (j = 2; j < c->argc; j++) {
