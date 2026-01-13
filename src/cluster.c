@@ -1741,9 +1741,6 @@ int slotRangeArrayNormalizeAndValidate(slotRangeArray *slots, sds *err) {
         return C_ERR;
     }
 
-    /* Sort and merge adjacent slot ranges. */
-    slotRangeArraySortAndMerge(slots);
-
     for (int i = 0; i < slots->num_ranges; i++) {
         if (slots->ranges[i].start >= CLUSTER_SLOTS ||
             slots->ranges[i].end >= CLUSTER_SLOTS)
@@ -1767,6 +1764,10 @@ int slotRangeArrayNormalizeAndValidate(slotRangeArray *slots, sds *err) {
             used_slots[j]++;
         }
     }
+
+    /* Sort and merge adjacent slot ranges. */
+    slotRangeArraySortAndMerge(slots);
+
     return C_OK;
 }
 
@@ -1877,6 +1878,7 @@ int slotRangeArrayIsEqual(slotRangeArray *slots1, slotRangeArray *slots2) {
     slotRangeArraySortAndMerge(slots1);
     slotRangeArraySortAndMerge(slots2);
 
+    if (!slots1 || !slots2) return 0;
     if (slots1->num_ranges != slots2->num_ranges) return 0;
 
     for (int i = 0; i < slots1->num_ranges; i++) {
