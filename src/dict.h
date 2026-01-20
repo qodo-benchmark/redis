@@ -38,8 +38,8 @@
  *   ENTRY_PTR_IS_EVEN_KEY=010.
  */
 
-#ifndef __DICT_H
-#define __DICT_H
+#ifndef _DICT_H
+#define _DICT_H
 
 #include "mt19937-64.h"
 #include <limits.h>
@@ -316,4 +316,4 @@ uint64_t dictGetUnsignedIntegerVal(const dictEntry *de);
 int dictTest(int argc, char *argv[], int flags);
 #endif
 
-#endif /* __DICT_H */
+#endif /* _DICT_H */
