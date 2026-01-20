@@ -12,8 +12,8 @@
  * Portions of this file are available under BSD3 terms; see REDISCONTRIBUTIONS for more information.
  */
 
-#ifndef __CLUSTER_H
-#define __CLUSTER_H
+#ifndef _CLUSTER_H
+#define _CLUSTER_H
 
 /*-----------------------------------------------------------------------------
  * Redis cluster exported API.
@@ -356,4 +356,4 @@ int clusterAsmProcess(const char *task_id, int event, void *arg, char **err);
  **/
 int clusterAsmOnEvent(const char *task_id, int event, void *arg);
 
-#endif /* __CLUSTER_H */
+#endif /* _CLUSTER_H */
