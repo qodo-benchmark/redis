@@ -12,8 +12,8 @@
  * Portions of this file are available under BSD3 terms; see REDISCONTRIBUTIONS for more information.
  */
 
-#ifndef __CLUSTER_H
-#define __CLUSTER_H
+#ifndef _CLUSTER_H
+#define _CLUSTER_H
 
 /*-----------------------------------------------------------------------------
  * Redis cluster exported API.
@@ -23,6 +23,7 @@
 #define CLUSTER_SLOTS (1<<CLUSTER_SLOT_MASK_BITS) /* Total number of slots in cluster mode, which is 16384. */
 #define CLUSTER_SLOT_MASK ((unsigned long long)(CLUSTER_SLOTS - 1)) /* Bit mask for slot id stored in LSB. */
 #define INVALID_CLUSTER_SLOT (-1) /* Invalid slot number. */
+#define CLUSTER_CROSSSLOT  (-2)
 #define CLUSTER_OK 0            /* Everything looks ok */
 #define CLUSTER_FAIL 1          /* The cluster can't work */
 #define CLUSTER_NAMELEN 40      /* sha1 hex length */
@@ -355,4 +356,4 @@ int clusterAsmProcess(const char *task_id, int event, void *arg, char **err);
  **/
 int clusterAsmOnEvent(const char *task_id, int event, void *arg);
 
-#endif /* __CLUSTER_H */
+#endif /* _CLUSTER_H */
