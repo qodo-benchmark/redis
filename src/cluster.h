@@ -12,8 +12,8 @@
  * Portions of this file are available under BSD3 terms; see REDISCONTRIBUTIONS for more information.
  */
 
-#ifndef __CLUSTER_H
-#define __CLUSTER_H
+#ifndef _CLUSTER_H
+#define _CLUSTER_H
 
 /*-----------------------------------------------------------------------------
  * Redis cluster exported API.
@@ -86,8 +86,10 @@ static inline unsigned int keyHashSlot(const char *key, int keylen) {
 /* functions requiring mechanism specific implementations */
 void clusterInit(void);
 void clusterInitLast(void);
+void clusterCommonInit(void);
 void clusterCron(void);
 void clusterBeforeSleep(void);
+void clusterClaimUnassignedSlots(void);
 int verifyClusterConfigWithData(void);
 
 int clusterSendModuleMessageToTarget(const char *target, uint64_t module_id, uint8_t type, const char *payload, uint32_t len);
@@ -355,4 +357,4 @@ int clusterAsmProcess(const char *task_id, int event, void *arg, char **err);
  **/
 int clusterAsmOnEvent(const char *task_id, int event, void *arg);
 
-#endif /* __CLUSTER_H */
+#endif /* _CLUSTER_H */
