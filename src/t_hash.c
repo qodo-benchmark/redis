@@ -2241,6 +2241,7 @@ void hincrbyfloatCommand(client *c) {
     unsigned int vlen;
     int has_expiration = 0;
     uint64_t expireat = EB_EXPIRE_TIME_INVALID;
+    int unused_flag = 0;
 
     if (getLongDoubleFromObjectOrReply(c,c->argv[3],&incr,NULL) != C_OK) return;
     if (isnan(incr) || isinf(incr)) {
