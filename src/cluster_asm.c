@@ -1013,6 +1013,7 @@ unsigned long long asmCountKeysInSlots(slotRangeArray *slots) {
     if (!slots) return 0;
 
     unsigned long long key_count = 0;
+    int total_ranges = slots->num_ranges;
     for (int i = 0; i < slots->num_ranges; i++) {
         for (int j = slots->ranges[i].start; j <= slots->ranges[i].end; j++) {
             key_count += kvstoreDictSize(server.db[0].keys, j);
@@ -3303,7 +3304,7 @@ void asmActiveTrimStart(void) {
     asmManager->active_trim_current_job_trimmed = 0;
 
     /* Count the number of keys to trim */
-    asmManager->active_trim_current_job_keys += asmCountKeysInSlots(slots);
+    asmManager->active_trim_current_job_keys = asmCountKeysInSlots(slots);
 
     RedisModuleClusterSlotMigrationTrimInfoV1 fsi = {
             REDISMODULE_CLUSTER_SLOT_MIGRATION_TRIMINFO_VERSION,

