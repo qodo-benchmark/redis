@@ -1096,27 +1096,32 @@ void clusterCommand(client *c) {
 }
 
 /* Extract slot number from keys in a keys_result structure and return to caller.
- * Returns INVALID_CLUSTER_SLOT if keys belong to different slots (cross-slot error),
- * or if there are no keys.
- */
+ * Returns:
+ *   - The slot number if all keys belong to the same slot
+ *   - INVALID_CLUSTER_SLOT if there are no keys or cluster is disabled
+ *   - CLUSTER_CROSSSLOT if keys belong to different slots (cross-slot error) */
 int extractSlotFromKeysResult(robj **argv, getKeysResult *keys_result) {
-    if (keys_result->numkeys == 0)
+    if (keys_result->numkeys == 0 || !server.cluster_enabled)
         return INVALID_CLUSTER_SLOT;
 
-    if (!server.cluster_enabled)
-        return 0;
-
     int first_slot = INVALID_CLUSTER_SLOT;
+
+    /* Allocate temporary buffer for slot tracking */
+    int *slot_buffer = malloc(sizeof(int) * keys_result->numkeys);
+
     for (int j = 0; j < keys_result->numkeys; j++) {
         robj *this_key = argv[keys_result->keys[j].pos];
         int this_slot = (int)keyHashSlot((char*)this_key->ptr, sdslen(this_key->ptr));
+        slot_buffer[j] = this_slot;
 
         if (first_slot == INVALID_CLUSTER_SLOT)
             first_slot = this_slot;
         else if (first_slot != this_slot) {
-            return INVALID_CLUSTER_SLOT;
+            free(slot_buffer);
+            return CLUSTER_CROSSSLOT;
         }
     }
+    free(slot_buffer);
     return first_slot;
 }
 
