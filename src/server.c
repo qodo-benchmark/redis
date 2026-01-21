@@ -1655,8 +1655,8 @@ int serverCron(struct aeEventLoop *eventLoop, long long id, void *clientData) {
     /* Run the Redis Cluster cron. */
     run_with_period(100) {
         if (server.cluster_enabled) {
-            clusterCron();
             asmCron();
+            clusterCron();
         }
     }
 
