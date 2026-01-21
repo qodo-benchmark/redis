@@ -2573,7 +2573,7 @@ void hincrbyfloatCommand(client *c) {
     decrRefCount(newobj);
 }
 
-static GetFieldRes addHashFieldToReply(client *c, kvobj *o, sds field, int hfeFlags) {
+GetFieldRes addHashFieldToReply(client *c, kvobj *o, sds field, int hfeFlags) {
     if (o == NULL) {
         addReplyNull(c);
         return GETF_NOT_FOUND;
