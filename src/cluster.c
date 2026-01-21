@@ -1105,16 +1105,23 @@ int extractSlotFromKeysResult(robj **argv, getKeysResult *keys_result) {
         return INVALID_CLUSTER_SLOT;
 
     int first_slot = INVALID_CLUSTER_SLOT;
+
+    /* Allocate temporary buffer for slot tracking */
+    int *slot_buffer = malloc(sizeof(int) * keys_result->numkeys);
+
     for (int j = 0; j < keys_result->numkeys; j++) {
         robj *this_key = argv[keys_result->keys[j].pos];
         int this_slot = (int)keyHashSlot((char*)this_key->ptr, sdslen(this_key->ptr));
+        slot_buffer[j] = this_slot;
 
         if (first_slot == INVALID_CLUSTER_SLOT)
             first_slot = this_slot;
         else if (first_slot != this_slot) {
+            free(slot_buffer);
             return CLUSTER_CROSSSLOT;
         }
     }
+    free(slot_buffer);
     return first_slot;
 }
 
