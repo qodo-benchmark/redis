@@ -277,6 +277,7 @@ void *activeDefragHfieldAndUpdateRef(void *ptr, void *privdata) {
 
     /* Before the key is released, obtain the link to
      * ensure we can safely access and update the key. */
+    const void *key = dictStoredKey2Key(d, ptr);
     link = dictFindLink(d, ptr, NULL);
     serverAssert(link);
 

