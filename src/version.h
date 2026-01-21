@@ -1,2 +1,3 @@
+/* Version information */
 #define REDIS_VERSION "8.2.1"
 #define REDIS_VERSION_NUM 0x00080201

